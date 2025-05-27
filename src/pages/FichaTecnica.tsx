@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,8 +54,28 @@ const FichaTecnica = () => {
     return colors[categoria as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleNovoIngrediente = () => {
-    toast.success('Funcionalidade em desenvolvimento');
+  const handleNovoIngrediente = async () => {
+    console.log('Triggering webhook for new ingredient');
+    
+    try {
+      const response = await fetch('https://n8n-producao.24por7.ai/webhook-test/foodservice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'no-cors',
+        body: JSON.stringify({
+          action: 'novo_ingrediente',
+          timestamp: new Date().toISOString(),
+          triggered_from: window.location.origin,
+        }),
+      });
+
+      toast.success('Webhook chamado com sucesso! Verifique o sistema para confirmar o processamento.');
+    } catch (error) {
+      console.error('Error calling webhook:', error);
+      toast.error('Erro ao chamar o webhook. Tente novamente.');
+    }
   };
 
   return (
