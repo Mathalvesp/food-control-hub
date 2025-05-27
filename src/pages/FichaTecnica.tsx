@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,27 +56,70 @@ const FichaTecnica = () => {
   };
 
   const handleNovoIngrediente = async () => {
-    console.log('Triggering webhook for new ingredient');
+    console.log('=== INICIANDO CHAMADA DO WEBHOOK ===');
+    console.log('URL:', 'https://n8n-producao.24por7.ai/webhook-test/foodservice');
+    
+    // Mostra toast imediatamente para confirmar que o clique funcionou
+    toast.info('Processando solicitação...');
+    
+    const payload = {
+      action: 'novo_ingrediente',
+      timestamp: new Date().toISOString(),
+      triggered_from: window.location.origin,
+      user_agent: navigator.userAgent,
+    };
+    
+    console.log('Payload sendo enviado:', payload);
     
     try {
+      console.log('Fazendo fetch request...');
+      
       const response = await fetch('https://n8n-producao.24por7.ai/webhook-test/foodservice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        mode: 'no-cors',
-        body: JSON.stringify({
-          action: 'novo_ingrediente',
-          timestamp: new Date().toISOString(),
-          triggered_from: window.location.origin,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      toast.success('Webhook chamado com sucesso! Verifique o sistema para confirmar o processamento.');
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
+      if (response.ok) {
+        const responseData = await response.text();
+        console.log('Response data:', responseData);
+        toast.success('Webhook executado com sucesso!');
+      } else {
+        console.error('Response não ok:', response.status, response.statusText);
+        toast.warning(`Webhook chamado (status: ${response.status}). Verifique o sistema n8n.`);
+      }
+      
     } catch (error) {
-      console.error('Error calling webhook:', error);
-      toast.error('Erro ao chamar o webhook. Tente novamente.');
+      console.error('=== ERRO NO WEBHOOK ===');
+      console.error('Tipo do erro:', error.constructor.name);
+      console.error('Mensagem:', error.message);
+      console.error('Stack:', error.stack);
+      
+      // Tenta chamada alternativa com no-cors
+      try {
+        console.log('Tentando com modo no-cors...');
+        await fetch('https://n8n-producao.24por7.ai/webhook-test/foodservice', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          mode: 'no-cors',
+          body: JSON.stringify(payload),
+        });
+        
+        toast.success('Webhook enviado (modo no-cors). Verifique o n8n para confirmar.');
+      } catch (secondError) {
+        console.error('Erro também no modo no-cors:', secondError);
+        toast.error('Erro ao chamar webhook. Verifique a conectividade e tente novamente.');
+      }
     }
+    
+    console.log('=== FIM DA CHAMADA DO WEBHOOK ===');
   };
 
   return (
