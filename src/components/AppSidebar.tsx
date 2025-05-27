@@ -1,6 +1,5 @@
-
 import { 
-  Dashboard, 
+  LayoutDashboard, 
   FileText, 
   BookOpen, 
   Package, 
@@ -21,7 +20,7 @@ const menuItems = [
   {
     title: "Dashboard",
     url: "/dashboard",
-    icon: Dashboard,
+    icon: LayoutDashboard,
   },
   {
     title: "Ficha Técnica",
