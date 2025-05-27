@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,24 +61,20 @@ const FichaTecnica = () => {
     // Mostra toast imediatamente para confirmar que o clique funcionou
     toast.info('Processando solicitação...');
     
-    const payload = {
+    const params = new URLSearchParams({
       action: 'novo_ingrediente',
       timestamp: new Date().toISOString(),
       triggered_from: window.location.origin,
       user_agent: navigator.userAgent,
-    };
+    });
     
-    console.log('Payload sendo enviado:', payload);
+    console.log('Parâmetros sendo enviados:', params.toString());
     
     try {
-      console.log('Fazendo fetch request...');
+      console.log('Fazendo GET request...');
       
-      const response = await fetch('https://n8n-producao.24por7.ai/webhook-test/foodservice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+      const response = await fetch(`https://n8n-producao.24por7.ai/webhook-test/foodservice?${params.toString()}`, {
+        method: 'GET',
       });
 
       console.log('Response status:', response.status);
@@ -100,23 +95,7 @@ const FichaTecnica = () => {
       console.error('Mensagem:', error.message);
       console.error('Stack:', error.stack);
       
-      // Tenta chamada alternativa com no-cors
-      try {
-        console.log('Tentando com modo no-cors...');
-        await fetch('https://n8n-producao.24por7.ai/webhook-test/foodservice', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          mode: 'no-cors',
-          body: JSON.stringify(payload),
-        });
-        
-        toast.success('Webhook enviado (modo no-cors). Verifique o n8n para confirmar.');
-      } catch (secondError) {
-        console.error('Erro também no modo no-cors:', secondError);
-        toast.error('Erro ao chamar webhook. Verifique a conectividade e tente novamente.');
-      }
+      toast.error('Erro ao chamar webhook. Verifique a conectividade e tente novamente.');
     }
     
     console.log('=== FIM DA CHAMADA DO WEBHOOK ===');
