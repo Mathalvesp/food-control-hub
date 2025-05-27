@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search } from 'lucide-react';
-import { toast } from 'sonner';
+import { Search } from 'lucide-react';
+import NovoIngredienteModal from '@/components/NovoIngredienteModal';
 
 interface Ingrediente {
   id: number;
@@ -54,53 +53,6 @@ const FichaTecnica = () => {
     return colors[categoria as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleNovoIngrediente = async () => {
-    console.log('=== INICIANDO CHAMADA DO WEBHOOK ===');
-    console.log('URL:', 'https://n8n-producao.24por7.ai/webhook-test/foodservice');
-    
-    // Mostra toast imediatamente para confirmar que o clique funcionou
-    toast.info('Processando solicitação...');
-    
-    const params = new URLSearchParams({
-      action: 'novo_ingrediente',
-      timestamp: new Date().toISOString(),
-      triggered_from: window.location.origin,
-      user_agent: navigator.userAgent,
-    });
-    
-    console.log('Parâmetros sendo enviados:', params.toString());
-    
-    try {
-      console.log('Fazendo GET request...');
-      
-      const response = await fetch(`https://n8n-producao.24por7.ai/webhook-test/foodservice?${params.toString()}`, {
-        method: 'GET',
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-      
-      if (response.ok) {
-        const responseData = await response.text();
-        console.log('Response data:', responseData);
-        toast.success('Webhook executado com sucesso!');
-      } else {
-        console.error('Response não ok:', response.status, response.statusText);
-        toast.warning(`Webhook chamado (status: ${response.status}). Verifique o sistema n8n.`);
-      }
-      
-    } catch (error) {
-      console.error('=== ERRO NO WEBHOOK ===');
-      console.error('Tipo do erro:', error.constructor.name);
-      console.error('Mensagem:', error.message);
-      console.error('Stack:', error.stack);
-      
-      toast.error('Erro ao chamar webhook. Verifique a conectividade e tente novamente.');
-    }
-    
-    console.log('=== FIM DA CHAMADA DO WEBHOOK ===');
-  };
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -108,13 +60,7 @@ const FichaTecnica = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Ficha Técnica</h1>
           <p className="text-gray-600">Gerencie os ingredientes e custos</p>
         </div>
-        <Button 
-          onClick={handleNovoIngrediente}
-          className="bg-primary hover:bg-primary-dark text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Ingrediente
-        </Button>
+        <NovoIngredienteModal />
       </div>
 
       {/* Filtros */}
