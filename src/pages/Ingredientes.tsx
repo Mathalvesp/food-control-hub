@@ -5,18 +5,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search, Pencil, Trash2 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import NovoIngredienteModal from '@/components/NovoIngredienteModal';
+import EditarIngredienteModal from '@/components/EditarIngredienteModal';
+import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog';
 import { toast } from 'sonner';
 
 interface Ingrediente {
@@ -36,6 +27,9 @@ interface Ingrediente {
 const Ingredientes = () => {
   const [filtroCategoria, setFiltroCategoria] = useState('todas');
   const [busca, setBusca] = useState('');
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedIngrediente, setSelectedIngrediente] = useState<Ingrediente | null>(null);
 
   // Função para calcular valores automáticos
   const calcularValores = (pesoInicial: number, pesoFinal: number, valorCusto: number) => {
@@ -114,80 +108,46 @@ const Ingredientes = () => {
     return colors[categoria as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleEditarIngrediente = async (ingrediente: Ingrediente) => {
-    console.log('=== INICIANDO EDIÇÃO DO INGREDIENTE ===');
-    console.log('Editando ingrediente:', ingrediente);
-    console.log('URL do webhook:', 'https://n8n-producao.24por7.ai/webhook-test/ingredientes');
-    
-    toast.info(`Iniciando edição do ingrediente: ${ingrediente.nome}`);
-    
-    const params = new URLSearchParams({
-      action: 'editar_ingrediente',
-      timestamp: new Date().toISOString(),
-      triggered_from: window.location.origin,
-      user_agent: navigator.userAgent,
-      id: ingrediente.id.toString(),
-      nome: ingrediente.nome,
-      categoria: ingrediente.categoria,
-      unidade: ingrediente.unidade,
-      valor_custo: ingrediente.valorCusto.toString(),
-      peso_inicial: ingrediente.pesoInicial.toString(),
-      peso_final: ingrediente.pesoFinal.toString(),
-      fator_correcao: ingrediente.fatorCorrecao.toString(),
-    });
-    
-    console.log('Dados do ingrediente para edição:', ingrediente);
-    console.log('Parâmetros sendo enviados:', params.toString());
-    
-    try {
-      console.log('Fazendo GET request para edição...');
-      
-      const response = await fetch(`https://n8n-producao.24por7.ai/webhook-test/ingredientes?${params.toString()}`, {
-        method: 'GET',
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-      
-      if (response.ok) {
-        const responseData = await response.text();
-        console.log('Response data:', responseData);
-        toast.success(`Edição do ingrediente "${ingrediente.nome}" enviada com sucesso!`);
-      } else {
-        console.error('Response não ok:', response.status, response.statusText);
-        toast.warning(`Edição enviada (status: ${response.status}). Verifique o sistema n8n.`);
-      }
-      
-    } catch (error) {
-      console.error('=== ERRO NO WEBHOOK DE EDIÇÃO ===');
-      console.error('Tipo do erro:', error.constructor.name);
-      console.error('Mensagem:', error.message);
-      console.error('Stack:', error.stack);
-      
-      toast.error('Erro ao editar ingrediente. Verifique a conectividade e tente novamente.');
-    }
-    
-    console.log('=== FIM DA CHAMADA DO WEBHOOK DE EDIÇÃO ===');
+  const handleEditarIngrediente = (ingrediente: Ingrediente) => {
+    setSelectedIngrediente(ingrediente);
+    setEditModalOpen(true);
   };
 
-  const handleDeletarIngrediente = async (ingrediente: Ingrediente) => {
+  const handleUpdateIngrediente = (ingredienteAtualizado: Ingrediente) => {
+    setIngredientes(prev => prev.map(item => 
+      item.id === ingredienteAtualizado.id ? ingredienteAtualizado : item
+    ));
+  };
+
+  const handleDeleteClick = (ingrediente: Ingrediente) => {
+    setSelectedIngrediente(ingrediente);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeletarIngrediente = async () => {
+    if (!selectedIngrediente) return;
+
     console.log('=== INICIANDO EXCLUSÃO DO INGREDIENTE ===');
-    console.log('Deletando ingrediente:', ingrediente);
+    console.log('Deletando ingrediente:', selectedIngrediente);
     console.log('URL do webhook:', 'https://n8n-producao.24por7.ai/webhook-test/ingredientes');
     
-    toast.info(`Processando exclusão do ingrediente: ${ingrediente.nome}`);
+    toast.info(`Processando exclusão do ingrediente: ${selectedIngrediente.nome}`);
     
     const params = new URLSearchParams({
       action: 'deletar_ingrediente',
       timestamp: new Date().toISOString(),
       triggered_from: window.location.origin,
       user_agent: navigator.userAgent,
-      id: ingrediente.id.toString(),
-      nome: ingrediente.nome,
-      categoria: ingrediente.categoria,
+      id: selectedIngrediente.id.toString(),
+      nome: selectedIngrediente.nome,
+      categoria: selectedIngrediente.categoria,
+      unidade: selectedIngrediente.unidade,
+      valor_custo: selectedIngrediente.valorCusto.toString(),
+      peso_inicial: selectedIngrediente.pesoInicial.toString(),
+      peso_final: selectedIngrediente.pesoFinal.toString(),
     });
     
-    console.log('Dados do ingrediente para exclusão:', ingrediente);
+    console.log('Dados do ingrediente para exclusão:', selectedIngrediente);
     console.log('Parâmetros sendo enviados:', params.toString());
     
     try {
@@ -205,8 +165,8 @@ const Ingredientes = () => {
         console.log('Response data:', responseData);
         
         // Remove o ingrediente da lista local após sucesso do webhook
-        setIngredientes(prev => prev.filter(item => item.id !== ingrediente.id));
-        toast.success(`Ingrediente "${ingrediente.nome}" foi removido com sucesso!`);
+        setIngredientes(prev => prev.filter(item => item.id !== selectedIngrediente.id));
+        toast.success(`Ingrediente "${selectedIngrediente.nome}" foi removido com sucesso!`);
       } else {
         console.error('Response não ok:', response.status, response.statusText);
         toast.warning(`Exclusão enviada (status: ${response.status}). Verifique o sistema n8n.`);
@@ -222,6 +182,7 @@ const Ingredientes = () => {
     }
     
     console.log('=== FIM DA CHAMADA DO WEBHOOK DE EXCLUSÃO ===');
+    setSelectedIngrediente(null);
   };
 
   return (
@@ -332,35 +293,14 @@ const Ingredientes = () => {
                         >
                           <Pencil className="h-4 w-4 text-blue-600" />
                         </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 hover:bg-red-100"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Tem certeza que deseja deletar o ingrediente "{ingrediente.nome}"? 
-                                Esta ação não pode ser desfeita.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeletarIngrediente(ingrediente)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Deletar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteClick(ingrediente)}
+                          className="h-8 w-8 p-0 hover:bg-red-100"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -376,6 +316,20 @@ const Ingredientes = () => {
           )}
         </CardContent>
       </Card>
+
+      <EditarIngredienteModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        ingrediente={selectedIngrediente}
+        onUpdate={handleUpdateIngrediente}
+      />
+
+      <ConfirmDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeletarIngrediente}
+        itemName={selectedIngrediente?.nome || ''}
+      />
     </div>
   );
 };
