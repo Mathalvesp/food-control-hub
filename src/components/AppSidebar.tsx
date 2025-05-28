@@ -1,6 +1,8 @@
+
 import { 
   LayoutDashboard, 
-  FileText, 
+  Tag, 
+  Package2, 
   BookOpen, 
   Package, 
   Cog
@@ -23,9 +25,14 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Ficha Técnica",
-    url: "/ficha-tecnica",
-    icon: FileText,
+    title: "Categorias",
+    url: "/categorias",
+    icon: Tag,
+  },
+  {
+    title: "Ingredientes",
+    url: "/ingredientes",
+    icon: Package2,
   },
   {
     title: "Receitas",

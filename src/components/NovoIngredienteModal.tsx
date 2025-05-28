@@ -12,6 +12,9 @@ interface NovoIngredienteData {
   nome: string;
   categoria: string;
   unidade: string;
+  valorCusto: string;
+  pesoInicial: string;
+  pesoFinal: string;
 }
 
 const NovoIngredienteModal = () => {
@@ -19,31 +22,52 @@ const NovoIngredienteModal = () => {
   const [ingredienteData, setIngredienteData] = useState<NovoIngredienteData>({
     nome: '',
     categoria: '',
-    unidade: ''
+    unidade: '',
+    valorCusto: '',
+    pesoInicial: '',
+    pesoFinal: ''
   });
 
   const categorias = [
-    { value: 'proteinas', label: 'Proteínas' },
-    { value: 'vegetais', label: 'Vegetais' },
-    { value: 'laticinios', label: 'Laticínios' },
-    { value: 'graos', label: 'Grãos' },
+    { value: 'Laticínios', label: 'Laticínios' },
+    { value: 'Carnes', label: 'Carnes' },
+    { value: 'Aves', label: 'Aves' },
+    { value: 'Suínos', label: 'Suínos' },
+    { value: 'Outras comidas', label: 'Outras comidas' },
+    { value: 'Camarão e peixes', label: 'Camarão e peixes' },
+    { value: 'Bebidas', label: 'Bebidas' },
+    { value: 'Liquor', label: 'Liquor' },
+    { value: 'Cervejas', label: 'Cervejas' },
+    { value: 'Vinhos', label: 'Vinhos' },
+    { value: 'Hortifruti', label: 'Hortifruti' },
+    { value: 'Pastas', label: 'Pastas' },
   ];
 
   const unidades = [
     { value: 'kg', label: 'Quilograma (kg)' },
-    { value: 'g', label: 'Grama (g)' },
+    { value: 'litro', label: 'Litro (l)' },
     { value: 'unidade', label: 'Unidade' },
-    { value: 'l', label: 'Litro (l)' },
-    { value: 'ml', label: 'Mililitro (ml)' },
   ];
+
+  const calcularFatorCorrecao = () => {
+    const inicial = parseFloat(ingredienteData.pesoInicial);
+    const final = parseFloat(ingredienteData.pesoFinal);
+    if (inicial > 0 && final > 0) {
+      return (inicial / final).toFixed(2);
+    }
+    return '0.00';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!ingredienteData.nome || !ingredienteData.categoria || !ingredienteData.unidade) {
+    if (!ingredienteData.nome || !ingredienteData.categoria || !ingredienteData.unidade || 
+        !ingredienteData.valorCusto || !ingredienteData.pesoInicial || !ingredienteData.pesoFinal) {
       toast.error('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
+
+    const fatorCorrecao = calcularFatorCorrecao();
 
     console.log('=== INICIANDO CHAMADA DO WEBHOOK COM DADOS ===');
     console.log('URL:', 'https://n8n-producao.24por7.ai/webhook-test/foodservice');
@@ -58,9 +82,13 @@ const NovoIngredienteModal = () => {
       nome: ingredienteData.nome,
       categoria: ingredienteData.categoria,
       unidade: ingredienteData.unidade,
+      valor_custo: ingredienteData.valorCusto,
+      peso_inicial: ingredienteData.pesoInicial,
+      peso_final: ingredienteData.pesoFinal,
+      fator_correcao: fatorCorrecao,
     });
     
-    console.log('Dados do ingrediente:', ingredienteData);
+    console.log('Dados do ingrediente:', { ...ingredienteData, fator_correcao: fatorCorrecao });
     console.log('Parâmetros sendo enviados:', params.toString());
     
     try {
@@ -79,7 +107,14 @@ const NovoIngredienteModal = () => {
         toast.success(`Ingrediente "${ingredienteData.nome}" criado com sucesso!`);
         
         // Limpar o formulário e fechar o modal
-        setIngredienteData({ nome: '', categoria: '', unidade: '' });
+        setIngredienteData({ 
+          nome: '', 
+          categoria: '', 
+          unidade: '', 
+          valorCusto: '', 
+          pesoInicial: '', 
+          pesoFinal: '' 
+        });
         setOpen(false);
       } else {
         console.error('Response não ok:', response.status, response.statusText);
@@ -113,60 +148,114 @@ const NovoIngredienteModal = () => {
           Novo Ingrediente
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Adicionar Novo Ingrediente</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="nome">Nome do Ingrediente *</Label>
-            <Input
-              id="nome"
-              value={ingredienteData.nome}
-              onChange={(e) => handleInputChange('nome', e.target.value)}
-              placeholder="Ex: Carne Bovina"
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome do Ingrediente *</Label>
+              <Input
+                id="nome"
+                value={ingredienteData.nome}
+                onChange={(e) => handleInputChange('nome', e.target.value)}
+                placeholder="Ex: Carne Bovina"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="categoria">Categoria *</Label>
+              <Select
+                value={ingredienteData.categoria}
+                onValueChange={(value) => handleInputChange('categoria', value)}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50">
+                  {categorias.map((categoria) => (
+                    <SelectItem key={categoria.value} value={categoria.value}>
+                      {categoria.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="categoria">Categoria *</Label>
-            <Select
-              value={ingredienteData.categoria}
-              onValueChange={(value) => handleInputChange('categoria', value)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                {categorias.map((categoria) => (
-                  <SelectItem key={categoria.value} value={categoria.value}>
-                    {categoria.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="unidade">Unidade de Medida *</Label>
+              <Select
+                value={ingredienteData.unidade}
+                onValueChange={(value) => handleInputChange('unidade', value)}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma unidade" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50">
+                  {unidades.map((unidade) => (
+                    <SelectItem key={unidade.value} value={unidade.value}>
+                      {unidade.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="valorCusto">Valor de Custo (R$) *</Label>
+              <Input
+                id="valorCusto"
+                type="number"
+                step="0.01"
+                value={ingredienteData.valorCusto}
+                onChange={(e) => handleInputChange('valorCusto', e.target.value)}
+                placeholder="0,00"
+                required
+              />
+            </div>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="unidade">Unidade de Medida *</Label>
-            <Select
-              value={ingredienteData.unidade}
-              onValueChange={(value) => handleInputChange('unidade', value)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma unidade" />
-              </SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                {unidades.map((unidade) => (
-                  <SelectItem key={unidade.value} value={unidade.value}>
-                    {unidade.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pesoInicial">Peso Inicial *</Label>
+              <Input
+                id="pesoInicial"
+                type="number"
+                step="0.01"
+                value={ingredienteData.pesoInicial}
+                onChange={(e) => handleInputChange('pesoInicial', e.target.value)}
+                placeholder="1,00"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pesoFinal">Peso Final *</Label>
+              <Input
+                id="pesoFinal"
+                type="number"
+                step="0.01"
+                value={ingredienteData.pesoFinal}
+                onChange={(e) => handleInputChange('pesoFinal', e.target.value)}
+                placeholder="0,85"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Fator de Correção</Label>
+              <div className="h-10 px-3 py-2 border border-gray-200 rounded-md bg-gray-50 flex items-center">
+                <span className="text-sm font-medium text-green-600">
+                  {calcularFatorCorrecao()}
+                </span>
+              </div>
+            </div>
           </div>
           
           <div className="flex justify-end space-x-2 pt-4">

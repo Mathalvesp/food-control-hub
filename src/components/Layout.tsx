@@ -25,7 +25,7 @@ const Layout = () => {
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <Header userName={userName} />
-          <main className="flex-1 pt-16 p-6 bg-gray-50">
+          <main className="flex-1 p-6 bg-gray-50 overflow-auto">
             <SidebarTrigger className="mb-4 md:hidden" />
             <Outlet />
           </main>

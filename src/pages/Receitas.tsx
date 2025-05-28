@@ -5,19 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, BookOpen } from 'lucide-react';
+import { Plus, BookOpen, X } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface IngredienteReceita {
+  nome: string;
+  quantidade: number;
+  unidade: string;
+}
 
 interface Receita {
   id: number;
   nome: string;
-  ingredientes: Array<{
-    nome: string;
-    quantidade: number;
-    unidade: string;
-  }>;
+  ingredientes: IngredienteReceita[];
   unidadeFinal: string;
-  fatorCorrecao: number;
   custoTotal: number;
 }
 
@@ -25,7 +26,12 @@ const Receitas = () => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [nomeReceita, setNomeReceita] = useState('');
   const [unidadeFinal, setUnidadeFinal] = useState('');
-  const [fatorCorrecao, setFatorCorrecao] = useState(1);
+  const [ingredientesReceita, setIngredientesReceita] = useState<IngredienteReceita[]>([]);
+  const [novoIngrediente, setNovoIngrediente] = useState({
+    nome: '',
+    quantidade: '',
+    unidade: ''
+  });
 
   // Dados simulados
   const [receitas] = useState<Receita[]>([
@@ -36,11 +42,10 @@ const Receitas = () => {
         { nome: 'Carne Bovina', quantidade: 0.15, unidade: 'kg' },
         { nome: 'Pão de Hambúrguer', quantidade: 1, unidade: 'unidade' },
         { nome: 'Queijo Mussarela', quantidade: 0.03, unidade: 'kg' },
-        { nome: 'Alface', quantidade: 2, unidade: 'folhas' },
+        { nome: 'Alface', quantidade: 0.02, unidade: 'kg' },
         { nome: 'Tomate', quantidade: 0.02, unidade: 'kg' },
       ],
       unidadeFinal: 'unidade',
-      fatorCorrecao: 1.1,
       custoTotal: 6.45
     },
     {
@@ -50,19 +55,41 @@ const Receitas = () => {
         { nome: 'Batata Inglesa', quantidade: 0.2, unidade: 'kg' },
       ],
       unidadeFinal: 'porção',
-      fatorCorrecao: 1.05,
       custoTotal: 0.67
     }
   ]);
 
   const ingredientesDisponiveis = [
     'Carne Bovina', 'Queijo Mussarela', 'Tomate', 'Alface', 
-    'Pão de Hambúrguer', 'Batata Inglesa'
+    'Pão de Hambúrguer', 'Batata Inglesa', 'Frango', 'Bacon'
   ];
 
+  const unidades = ['kg', 'litro', 'unidade'];
+
+  const adicionarIngrediente = () => {
+    if (!novoIngrediente.nome || !novoIngrediente.quantidade || !novoIngrediente.unidade) {
+      toast.error('Preencha todos os campos do ingrediente');
+      return;
+    }
+
+    const ingrediente: IngredienteReceita = {
+      nome: novoIngrediente.nome,
+      quantidade: parseFloat(novoIngrediente.quantidade),
+      unidade: novoIngrediente.unidade
+    };
+
+    setIngredientesReceita(prev => [...prev, ingrediente]);
+    setNovoIngrediente({ nome: '', quantidade: '', unidade: '' });
+    toast.success('Ingrediente adicionado à receita');
+  };
+
+  const removerIngrediente = (index: number) => {
+    setIngredientesReceita(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSalvarReceita = () => {
-    if (!nomeReceita || !unidadeFinal) {
-      toast.error('Preencha todos os campos obrigatórios');
+    if (!nomeReceita || !unidadeFinal || ingredientesReceita.length === 0) {
+      toast.error('Preencha todos os campos obrigatórios e adicione pelo menos um ingrediente');
       return;
     }
     
@@ -70,7 +97,7 @@ const Receitas = () => {
     setMostrarFormulario(false);
     setNomeReceita('');
     setUnidadeFinal('');
-    setFatorCorrecao(1);
+    setIngredientesReceita([]);
   };
 
   return (
@@ -124,29 +151,90 @@ const Receitas = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fator">Fator de Correção</Label>
-              <Input
-                id="fator"
-                type="number"
-                step="0.1"
-                value={fatorCorrecao}
-                onChange={(e) => setFatorCorrecao(Number(e.target.value))}
-                placeholder="1.0"
-              />
-            </div>
-
+            {/* Adicionar Ingredientes */}
             <div className="space-y-4">
-              <Label>Ingredientes Utilizados</Label>
+              <Label>Ingredientes Utilizados *</Label>
+              
+              {/* Formulário para adicionar ingrediente */}
               <div className="border rounded-lg p-4 bg-gray-50">
-                <p className="text-sm text-gray-600 mb-2">
-                  Adicione os ingredientes e suas quantidades
-                </p>
-                <Button variant="outline" size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Ingrediente
-                </Button>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <Label>Nome do Ingrediente</Label>
+                    <Select 
+                      value={novoIngrediente.nome} 
+                      onValueChange={(value) => setNovoIngrediente(prev => ({ ...prev, nome: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white z-50">
+                        {ingredientesDisponiveis.map((ing) => (
+                          <SelectItem key={ing} value={ing}>{ing}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label>Quantidade</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={novoIngrediente.quantidade}
+                      onChange={(e) => setNovoIngrediente(prev => ({ ...prev, quantidade: e.target.value }))}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Unidade</Label>
+                    <Select 
+                      value={novoIngrediente.unidade} 
+                      onValueChange={(value) => setNovoIngrediente(prev => ({ ...prev, unidade: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white z-50">
+                        {unidades.map((unidade) => (
+                          <SelectItem key={unidade} value={unidade}>{unidade}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-end">
+                    <Button type="button" onClick={adicionarIngrediente} size="sm">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </div>
+                </div>
               </div>
+
+              {/* Lista de ingredientes adicionados */}
+              {ingredientesReceita.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Ingredientes da Receita:</Label>
+                  <div className="space-y-2">
+                    {ingredientesReceita.map((ingrediente, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white p-3 rounded border">
+                        <span>
+                          {ingrediente.nome} - {ingrediente.quantidade} {ingrediente.unidade}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removerIngrediente(index)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -194,11 +282,6 @@ const Receitas = () => {
                       </li>
                     ))}
                   </ul>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Fator de Correção:</span>
-                  <span className="font-medium">{receita.fatorCorrecao}x</span>
                 </div>
 
                 <div className="pt-2 border-t">
