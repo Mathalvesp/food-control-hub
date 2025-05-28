@@ -7,8 +7,9 @@ const Dashboard = () => {
   // Dados simulados para os cards
   const statsData = [
     { title: 'CMV Global', value: '23.5%', description: 'Custo das Mercadorias Vendidas', color: 'text-green-600' },
-    { title: 'Itens em Estoque', value: '247', description: 'Produtos cadastrados', color: 'text-blue-600' },
-    { title: 'Receitas Cadastradas', value: '89', description: 'Receitas no sistema', color: 'text-purple-600' },
+    { title: 'CMV Diário', value: '24.2%', description: 'CMV das operações de hoje', color: 'text-blue-600' },
+    { title: 'Itens em Estoque', value: '247', description: 'Produtos cadastrados', color: 'text-purple-600' },
+    { title: 'Receitas Cadastradas', value: '89', description: 'Receitas no sistema', color: 'text-orange-600' },
   ];
 
   // Dados para o gráfico de barras
@@ -37,7 +38,7 @@ const Dashboard = () => {
       </div>
 
       {/* Cards de estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsData.map((stat, index) => (
           <Card key={index} className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-3">

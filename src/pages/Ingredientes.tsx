@@ -16,13 +16,31 @@ interface Ingrediente {
   pesoFinal: number;
   fatorCorrecao: number;
   categoria: string;
+  porcentagemAproveitamento: number;
+  porcentagemPerda: number;
+  precoReal: number;
 }
 
 const Ingredientes = () => {
   const [filtroCategoria, setFiltroCategoria] = useState('todas');
   const [busca, setBusca] = useState('');
 
-  // Dados simulados
+  // Função para calcular valores automáticos
+  const calcularValores = (pesoInicial: number, pesoFinal: number, valorCusto: number) => {
+    const fatorCorrecao = pesoInicial / pesoFinal;
+    const porcentagemAproveitamento = (pesoFinal / pesoInicial) * 100;
+    const porcentagemPerda = ((pesoInicial - pesoFinal) / pesoInicial) * 100;
+    const precoReal = valorCusto * fatorCorrecao;
+    
+    return {
+      fatorCorrecao: Number(fatorCorrecao.toFixed(2)),
+      porcentagemAproveitamento: Number(porcentagemAproveitamento.toFixed(1)),
+      porcentagemPerda: Number(porcentagemPerda.toFixed(1)),
+      precoReal: Number(precoReal.toFixed(2))
+    };
+  };
+
+  // Dados simulados com cálculos automáticos
   const [ingredientes] = useState<Ingrediente[]>([
     { 
       id: 1, 
@@ -31,7 +49,7 @@ const Ingredientes = () => {
       valorCusto: 32.50, 
       pesoInicial: 1.0,
       pesoFinal: 0.85,
-      fatorCorrecao: 1.18,
+      ...calcularValores(1.0, 0.85, 32.50),
       categoria: 'Carnes' 
     },
     { 
@@ -41,7 +59,7 @@ const Ingredientes = () => {
       valorCusto: 28.90, 
       pesoInicial: 1.0,
       pesoFinal: 0.95,
-      fatorCorrecao: 1.05,
+      ...calcularValores(1.0, 0.95, 28.90),
       categoria: 'Laticínios' 
     },
     { 
@@ -51,7 +69,7 @@ const Ingredientes = () => {
       valorCusto: 4.50, 
       pesoInicial: 1.0,
       pesoFinal: 0.90,
-      fatorCorrecao: 1.11,
+      ...calcularValores(1.0, 0.90, 4.50),
       categoria: 'Hortifruti' 
     },
   ]);
@@ -138,10 +156,11 @@ const Ingredientes = () => {
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Ingrediente</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Categoria</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Unidade</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Valor de Custo</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Peso Inicial</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Peso Final</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Valor Custo</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">% Aproveitamento</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">% Perda</th>
                   <th className="text-right py-3 px-4 font-semibold text-gray-700">Fator Correção</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Preço Real</th>
                 </tr>
               </thead>
               <tbody>
@@ -160,14 +179,23 @@ const Ingredientes = () => {
                       R$ {ingrediente.valorCusto.toFixed(2)}
                     </td>
                     <td className="py-4 px-4 text-right">
-                      {ingrediente.pesoInicial.toFixed(2)} {ingrediente.unidade}
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      {ingrediente.pesoFinal.toFixed(2)} {ingrediente.unidade}
-                    </td>
-                    <td className="py-4 px-4 text-right">
                       <span className="text-green-600 font-medium">
-                        {ingrediente.fatorCorrecao.toFixed(2)}
+                        {ingrediente.porcentagemAproveitamento}%
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-right">
+                      <span className="text-red-600 font-medium">
+                        {ingrediente.porcentagemPerda}%
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-right">
+                      <span className="text-blue-600 font-medium">
+                        {ingrediente.fatorCorrecao}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-right font-bold">
+                      <span className="text-primary">
+                        R$ {ingrediente.precoReal.toFixed(2)}
                       </span>
                     </td>
                   </tr>

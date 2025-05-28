@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, BookOpen, X } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Plus, BookOpen, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface IngredienteReceita {
@@ -20,12 +21,15 @@ interface Receita {
   ingredientes: IngredienteReceita[];
   unidadeFinal: string;
   custoTotal: number;
+  modoPreparo: string;
 }
 
 const Receitas = () => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [nomeReceita, setNomeReceita] = useState('');
   const [unidadeFinal, setUnidadeFinal] = useState('');
+  const [modoPreparo, setModoPreparo] = useState('');
+  const [busca, setBusca] = useState('');
   const [ingredientesReceita, setIngredientesReceita] = useState<IngredienteReceita[]>([]);
   const [novoIngrediente, setNovoIngrediente] = useState({
     nome: '',
@@ -34,7 +38,7 @@ const Receitas = () => {
   });
 
   // Dados simulados
-  const [receitas] = useState<Receita[]>([
+  const [receitas, setReceitas] = useState<Receita[]>([
     {
       id: 1,
       nome: 'Hambúrguer Clássico',
@@ -46,7 +50,8 @@ const Receitas = () => {
         { nome: 'Tomate', quantidade: 0.02, unidade: 'kg' },
       ],
       unidadeFinal: 'unidade',
-      custoTotal: 6.45
+      custoTotal: 6.45,
+      modoPreparo: 'Grelhe a carne por 4 minutos de cada lado. Torre o pão levemente. Monte o hambúrguer com alface, tomate, carne e queijo.'
     },
     {
       id: 2,
@@ -55,7 +60,8 @@ const Receitas = () => {
         { nome: 'Batata Inglesa', quantidade: 0.2, unidade: 'kg' },
       ],
       unidadeFinal: 'porção',
-      custoTotal: 0.67
+      custoTotal: 0.67,
+      modoPreparo: 'Corte as batatas em fatias. Frite em óleo a 180°C por 3-4 minutos até dourar. Tempere com sal.'
     }
   ]);
 
@@ -88,17 +94,32 @@ const Receitas = () => {
   };
 
   const handleSalvarReceita = () => {
-    if (!nomeReceita || !unidadeFinal || ingredientesReceita.length === 0) {
+    if (!nomeReceita || !unidadeFinal || !modoPreparo || ingredientesReceita.length === 0) {
       toast.error('Preencha todos os campos obrigatórios e adicione pelo menos um ingrediente');
       return;
     }
     
+    const novaReceita: Receita = {
+      id: receitas.length + 1,
+      nome: nomeReceita,
+      ingredientes: ingredientesReceita,
+      unidadeFinal: unidadeFinal,
+      modoPreparo: modoPreparo,
+      custoTotal: Math.random() * 10 + 2 // Simulação de cálculo de custo
+    };
+
+    setReceitas(prev => [...prev, novaReceita]);
     toast.success('Receita salva com sucesso!');
     setMostrarFormulario(false);
     setNomeReceita('');
     setUnidadeFinal('');
+    setModoPreparo('');
     setIngredientesReceita([]);
   };
+
+  const receitasFiltradas = receitas.filter(receita =>
+    receita.nome.toLowerCase().includes(busca.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -109,18 +130,33 @@ const Receitas = () => {
         </div>
         <Button 
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="bg-primary hover:bg-primary-dark text-white"
+          className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 text-base"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-5 h-5 mr-2" />
           Nova Receita
         </Button>
       </div>
 
+      {/* Campo de pesquisa */}
+      <Card className="shadow-sm">
+        <CardContent className="pt-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Pesquisar receitas por nome..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Formulário de nova receita */}
       {mostrarFormulario && (
-        <Card className="shadow-sm border-l-4 border-l-primary">
+        <Card className="shadow-sm border-l-4 border-l-red-600">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-primary">
+            <CardTitle className="text-lg font-semibold text-red-600">
               Cadastrar Nova Receita
             </CardTitle>
           </CardHeader>
@@ -149,6 +185,18 @@ const Receitas = () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Modo de Preparo */}
+            <div className="space-y-2">
+              <Label htmlFor="modoPreparo">Modo de Preparo *</Label>
+              <Textarea
+                id="modoPreparo"
+                value={modoPreparo}
+                onChange={(e) => setModoPreparo(e.target.value)}
+                placeholder="Descreva o modo de preparo da receita..."
+                rows={4}
+              />
             </div>
 
             {/* Adicionar Ingredientes */}
@@ -238,7 +286,7 @@ const Receitas = () => {
             </div>
 
             <div className="flex gap-3">
-              <Button onClick={handleSalvarReceita} className="bg-primary hover:bg-primary-dark">
+              <Button onClick={handleSalvarReceita} className="bg-red-600 hover:bg-red-700">
                 Salvar Receita
               </Button>
               <Button 
@@ -254,16 +302,16 @@ const Receitas = () => {
 
       {/* Lista de receitas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {receitas.map((receita) => (
+        {receitasFiltradas.map((receita) => (
           <Card key={receita.id} className="shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold flex items-center">
-                  <BookOpen className="w-5 h-5 mr-2 text-primary" />
+                  <BookOpen className="w-5 h-5 mr-2 text-red-600" />
                   {receita.nome}
                 </CardTitle>
                 <div className="text-right">
-                  <div className="text-lg font-bold text-primary">
+                  <div className="text-lg font-bold text-red-600">
                     R$ {receita.custoTotal.toFixed(2)}
                   </div>
                   <div className="text-sm text-gray-500">por {receita.unidadeFinal}</div>
@@ -284,6 +332,13 @@ const Receitas = () => {
                   </ul>
                 </div>
 
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Modo de Preparo:</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {receita.modoPreparo}
+                  </p>
+                </div>
+
                 <div className="pt-2 border-t">
                   <Button variant="outline" size="sm" className="w-full">
                     Editar Receita
@@ -295,15 +350,15 @@ const Receitas = () => {
         ))}
       </div>
 
-      {receitas.length === 0 && (
+      {receitasFiltradas.length === 0 && (
         <Card className="shadow-sm">
           <CardContent className="text-center py-12">
             <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Nenhuma receita cadastrada
+              Nenhuma receita encontrada
             </h3>
             <p className="text-gray-600">
-              Comece cadastrando sua primeira receita
+              {busca ? 'Tente ajustar os termos de pesquisa' : 'Comece cadastrando sua primeira receita'}
             </p>
           </CardContent>
         </Card>
