@@ -70,7 +70,7 @@ const NovoIngredienteModal = () => {
     const fatorCorrecao = calcularFatorCorrecao();
 
     console.log('=== INICIANDO CHAMADA DO WEBHOOK COM DADOS ===');
-    console.log('URL:', 'https://n8n-producao.24por7.ai/webhook-test/foodservice');
+    console.log('URL:', 'https://n8n-producao.24por7.ai/webhook-test/ingredientes');
     
     toast.info('Processando novo ingrediente...');
     
@@ -94,7 +94,7 @@ const NovoIngredienteModal = () => {
     try {
       console.log('Fazendo GET request...');
       
-      const response = await fetch(`https://n8n-producao.24por7.ai/webhook-test/foodservice?${params.toString()}`, {
+      const response = await fetch(`https://n8n-producao.24por7.ai/webhook-test/ingredientes?${params.toString()}`, {
         method: 'GET',
       });
 
