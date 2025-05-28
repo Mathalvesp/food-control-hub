@@ -3,8 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, Pencil, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import NovoIngredienteModal from '@/components/NovoIngredienteModal';
+import { toast } from 'sonner';
 
 interface Ingrediente {
   id: number;
@@ -40,7 +53,7 @@ const Ingredientes = () => {
   };
 
   // Dados simulados com cálculos automáticos
-  const [ingredientes] = useState<Ingrediente[]>([
+  const [ingredientes, setIngredientes] = useState<Ingrediente[]>([
     { 
       id: 1, 
       nome: 'Carne Bovina', 
@@ -99,6 +112,17 @@ const Ingredientes = () => {
       'Bebidas': 'bg-purple-100 text-purple-800',
     };
     return colors[categoria as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  };
+
+  const handleEditarIngrediente = (ingrediente: Ingrediente) => {
+    console.log('Editando ingrediente:', ingrediente);
+    toast.info(`Funcionalidade de edição será implementada para: ${ingrediente.nome}`);
+  };
+
+  const handleDeletarIngrediente = (ingrediente: Ingrediente) => {
+    console.log('Deletando ingrediente:', ingrediente);
+    setIngredientes(prev => prev.filter(item => item.id !== ingrediente.id));
+    toast.success(`Ingrediente "${ingrediente.nome}" foi removido com sucesso!`);
   };
 
   return (
@@ -161,6 +185,7 @@ const Ingredientes = () => {
                   <th className="text-right py-3 px-4 font-semibold text-gray-700">% Perda</th>
                   <th className="text-right py-3 px-4 font-semibold text-gray-700">Fator Correção</th>
                   <th className="text-right py-3 px-4 font-semibold text-gray-700">Preço Real</th>
+                  <th className="text-center py-3 px-4 font-semibold text-gray-700">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -197,6 +222,47 @@ const Ingredientes = () => {
                       <span className="text-primary">
                         R$ {ingrediente.precoReal.toFixed(2)}
                       </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditarIngrediente(ingrediente)}
+                          className="h-8 w-8 p-0 hover:bg-blue-100"
+                        >
+                          <Pencil className="h-4 w-4 text-blue-600" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-red-100"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja deletar o ingrediente "{ingrediente.nome}"? 
+                                Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeletarIngrediente(ingrediente)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Deletar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </td>
                   </tr>
                 ))}
