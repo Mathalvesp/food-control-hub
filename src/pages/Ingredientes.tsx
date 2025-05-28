@@ -114,15 +114,114 @@ const Ingredientes = () => {
     return colors[categoria as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleEditarIngrediente = (ingrediente: Ingrediente) => {
+  const handleEditarIngrediente = async (ingrediente: Ingrediente) => {
+    console.log('=== INICIANDO EDIÇÃO DO INGREDIENTE ===');
     console.log('Editando ingrediente:', ingrediente);
-    toast.info(`Funcionalidade de edição será implementada para: ${ingrediente.nome}`);
+    console.log('URL do webhook:', 'https://n8n-producao.24por7.ai/webhook-test/ingredientes');
+    
+    toast.info(`Iniciando edição do ingrediente: ${ingrediente.nome}`);
+    
+    const params = new URLSearchParams({
+      action: 'editar_ingrediente',
+      timestamp: new Date().toISOString(),
+      triggered_from: window.location.origin,
+      user_agent: navigator.userAgent,
+      id: ingrediente.id.toString(),
+      nome: ingrediente.nome,
+      categoria: ingrediente.categoria,
+      unidade: ingrediente.unidade,
+      valor_custo: ingrediente.valorCusto.toString(),
+      peso_inicial: ingrediente.pesoInicial.toString(),
+      peso_final: ingrediente.pesoFinal.toString(),
+      fator_correcao: ingrediente.fatorCorrecao.toString(),
+    });
+    
+    console.log('Dados do ingrediente para edição:', ingrediente);
+    console.log('Parâmetros sendo enviados:', params.toString());
+    
+    try {
+      console.log('Fazendo GET request para edição...');
+      
+      const response = await fetch(`https://n8n-producao.24por7.ai/webhook-test/ingredientes?${params.toString()}`, {
+        method: 'GET',
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
+      if (response.ok) {
+        const responseData = await response.text();
+        console.log('Response data:', responseData);
+        toast.success(`Edição do ingrediente "${ingrediente.nome}" enviada com sucesso!`);
+      } else {
+        console.error('Response não ok:', response.status, response.statusText);
+        toast.warning(`Edição enviada (status: ${response.status}). Verifique o sistema n8n.`);
+      }
+      
+    } catch (error) {
+      console.error('=== ERRO NO WEBHOOK DE EDIÇÃO ===');
+      console.error('Tipo do erro:', error.constructor.name);
+      console.error('Mensagem:', error.message);
+      console.error('Stack:', error.stack);
+      
+      toast.error('Erro ao editar ingrediente. Verifique a conectividade e tente novamente.');
+    }
+    
+    console.log('=== FIM DA CHAMADA DO WEBHOOK DE EDIÇÃO ===');
   };
 
-  const handleDeletarIngrediente = (ingrediente: Ingrediente) => {
+  const handleDeletarIngrediente = async (ingrediente: Ingrediente) => {
+    console.log('=== INICIANDO EXCLUSÃO DO INGREDIENTE ===');
     console.log('Deletando ingrediente:', ingrediente);
-    setIngredientes(prev => prev.filter(item => item.id !== ingrediente.id));
-    toast.success(`Ingrediente "${ingrediente.nome}" foi removido com sucesso!`);
+    console.log('URL do webhook:', 'https://n8n-producao.24por7.ai/webhook-test/ingredientes');
+    
+    toast.info(`Processando exclusão do ingrediente: ${ingrediente.nome}`);
+    
+    const params = new URLSearchParams({
+      action: 'deletar_ingrediente',
+      timestamp: new Date().toISOString(),
+      triggered_from: window.location.origin,
+      user_agent: navigator.userAgent,
+      id: ingrediente.id.toString(),
+      nome: ingrediente.nome,
+      categoria: ingrediente.categoria,
+    });
+    
+    console.log('Dados do ingrediente para exclusão:', ingrediente);
+    console.log('Parâmetros sendo enviados:', params.toString());
+    
+    try {
+      console.log('Fazendo GET request para exclusão...');
+      
+      const response = await fetch(`https://n8n-producao.24por7.ai/webhook-test/ingredientes?${params.toString()}`, {
+        method: 'GET',
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
+      if (response.ok) {
+        const responseData = await response.text();
+        console.log('Response data:', responseData);
+        
+        // Remove o ingrediente da lista local após sucesso do webhook
+        setIngredientes(prev => prev.filter(item => item.id !== ingrediente.id));
+        toast.success(`Ingrediente "${ingrediente.nome}" foi removido com sucesso!`);
+      } else {
+        console.error('Response não ok:', response.status, response.statusText);
+        toast.warning(`Exclusão enviada (status: ${response.status}). Verifique o sistema n8n.`);
+      }
+      
+    } catch (error) {
+      console.error('=== ERRO NO WEBHOOK DE EXCLUSÃO ===');
+      console.error('Tipo do erro:', error.constructor.name);
+      console.error('Mensagem:', error.message);
+      console.error('Stack:', error.stack);
+      
+      toast.error('Erro ao deletar ingrediente. Verifique a conectividade e tente novamente.');
+    }
+    
+    console.log('=== FIM DA CHAMADA DO WEBHOOK DE EXCLUSÃO ===');
   };
 
   return (
