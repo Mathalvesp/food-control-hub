@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, Plus } from 'lucide-react';
 import NovoIngredienteModal from '@/components/NovoIngredienteModal';
 
 interface Ingrediente {
@@ -104,12 +105,19 @@ const Ingredientes = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
+      {/* Header com título e botão */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Ingredientes</h1>
           <p className="text-gray-600">Gerencie os ingredientes e custos</p>
         </div>
-        <NovoIngredienteModal />
+        <div className="flex gap-2">
+          <NovoIngredienteModal />
+          <Button className="bg-red-600 hover:bg-red-700 text-white shadow-lg">
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Ingrediente
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -143,10 +151,11 @@ const Ingredientes = () => {
 
       {/* Tabela de ingredientes */}
       <Card className="shadow-sm">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg font-semibold">
             Ingredientes Cadastrados ({ingredientesFiltrados.length})
           </CardTitle>
+          <NovoIngredienteModal />
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
