@@ -20,13 +20,13 @@ const Layout = () => {
   }, [navigate, location.pathname]);
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+    <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Header userName={userName} />
-          <main className="flex-1 p-6 bg-gray-50 overflow-auto">
-            <SidebarTrigger className="mb-4 md:hidden" />
+          <main className="flex-1 p-6 overflow-auto">
+            <SidebarTrigger className="mb-4 lg:hidden" />
             <Outlet />
           </main>
         </div>
