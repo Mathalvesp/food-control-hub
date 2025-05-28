@@ -128,26 +128,28 @@ const Receitas = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Receitas</h1>
           <p className="text-gray-600">Cadastre e gerencie suas receitas</p>
         </div>
-        <Button 
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 text-base"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Nova Receita
-        </Button>
       </div>
 
-      {/* Campo de pesquisa */}
+      {/* Campo de pesquisa com botão Nova Receita */}
       <Card className="shadow-sm">
         <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Pesquisar receitas por nome..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Pesquisar receitas por nome..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button 
+              onClick={() => setMostrarFormulario(!mostrarFormulario)}
+              className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 text-base"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Nova Receita
+            </Button>
           </div>
         </CardContent>
       </Card>
