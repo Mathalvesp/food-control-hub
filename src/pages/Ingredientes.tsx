@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -31,7 +30,8 @@ const Ingredientes = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedIngrediente, setSelectedIngrediente] = useState<Ingrediente | null>(null);
-  const [proximoId, setProximoId] = useState(1); // Controla o próximo ID a ser usado
+  const [ingredientes, setIngredientes] = useState<Ingrediente[]>([]);
+  const [proximoId, setProximoId] = useState(1);
 
   // Função para calcular valores automáticos
   const calcularValores = (pesoInicial: number, pesoFinal: number, valorCusto: number) => {
@@ -49,8 +49,6 @@ const Ingredientes = () => {
   };
 
   // Array vazio para ingredientes
-  const [ingredientes, setIngredientes] = useState<Ingrediente[]>([]);
-
   const categorias = [
     { value: 'todas', label: 'Todas as Categorias' },
     { value: 'Laticínios', label: 'Laticínios' },
