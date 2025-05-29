@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,25 @@ interface NovoIngredienteData {
   pesoFinal: string;
 }
 
-const NovoIngredienteModal = () => {
+interface Ingrediente {
+  id: number;
+  nome: string;
+  unidade: string;
+  valorCusto: number;
+  pesoInicial: number;
+  pesoFinal: number;
+  fatorCorrecao: number;
+  categoria: string;
+  porcentagemAproveitamento: number;
+  porcentagemPerda: number;
+  precoReal: number;
+}
+
+interface NovoIngredienteModalProps {
+  onIngredienteAdicionado?: (ingrediente: Ingrediente) => void;
+}
+
+const NovoIngredienteModal = ({ onIngredienteAdicionado }: NovoIngredienteModalProps) => {
   const [open, setOpen] = useState(false);
   const [ingredienteData, setIngredienteData] = useState<NovoIngredienteData>({
     nome: '',
@@ -58,6 +75,20 @@ const NovoIngredienteModal = () => {
     return '0.00';
   };
 
+  const calcularValores = (pesoInicial: number, pesoFinal: number, valorCusto: number) => {
+    const fatorCorrecao = pesoInicial / pesoFinal;
+    const porcentagemAproveitamento = (pesoFinal / pesoInicial) * 100;
+    const porcentagemPerda = ((pesoInicial - pesoFinal) / pesoInicial) * 100;
+    const precoReal = valorCusto * fatorCorrecao;
+    
+    return {
+      fatorCorrecao: Number(fatorCorrecao.toFixed(2)),
+      porcentagemAproveitamento: Number(porcentagemAproveitamento.toFixed(1)),
+      porcentagemPerda: Number(porcentagemPerda.toFixed(1)),
+      precoReal: Number(precoReal.toFixed(2))
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -68,6 +99,9 @@ const NovoIngredienteModal = () => {
     }
 
     const fatorCorrecao = calcularFatorCorrecao();
+    const valorCusto = parseFloat(ingredienteData.valorCusto);
+    const pesoInicial = parseFloat(ingredienteData.pesoInicial);
+    const pesoFinal = parseFloat(ingredienteData.pesoFinal);
 
     console.log('=== INICIANDO CHAMADA DO WEBHOOK COM DADOS ===');
     console.log('URL:', 'https://n8n-producao.24por7.ai/webhook-test/ingredientes');
@@ -105,6 +139,24 @@ const NovoIngredienteModal = () => {
         const responseData = await response.text();
         console.log('Response data:', responseData);
         toast.success(`Ingrediente "${ingredienteData.nome}" criado com sucesso!`);
+        
+        // Criar o objeto ingrediente para adicionar à lista local
+        const valoresCalculados = calcularValores(pesoInicial, pesoFinal, valorCusto);
+        const novoIngrediente: Ingrediente = {
+          id: Date.now(), // ID temporário baseado no timestamp
+          nome: ingredienteData.nome,
+          categoria: ingredienteData.categoria,
+          unidade: ingredienteData.unidade,
+          valorCusto: valorCusto,
+          pesoInicial: pesoInicial,
+          pesoFinal: pesoFinal,
+          ...valoresCalculados
+        };
+
+        // Adicionar o ingrediente à lista local se a função foi fornecida
+        if (onIngredienteAdicionado) {
+          onIngredienteAdicionado(novoIngrediente);
+        }
         
         // Limpar o formulário e fechar o modal
         setIngredienteData({ 

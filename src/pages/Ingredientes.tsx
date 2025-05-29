@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -76,6 +75,10 @@ const Ingredientes = () => {
       'Bebidas': 'bg-purple-100 text-purple-800',
     };
     return colors[categoria as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  };
+
+  const handleAdicionarIngrediente = (novoIngrediente: Ingrediente) => {
+    setIngredientes(prev => [...prev, novoIngrediente]);
   };
 
   const handleEditarIngrediente = (ingrediente: Ingrediente) => {
@@ -200,7 +203,7 @@ const Ingredientes = () => {
           <CardTitle className="text-lg font-semibold">
             Ingredientes Cadastrados ({ingredientesFiltrados.length})
           </CardTitle>
-          <NovoIngredienteModal />
+          <NovoIngredienteModal onIngredienteAdicionado={handleAdicionarIngrediente} />
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
