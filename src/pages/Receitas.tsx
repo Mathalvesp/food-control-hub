@@ -34,6 +34,7 @@ interface IngredienteCadastrado {
 
 const Receitas = () => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarEdicao, setMostrarEdicao] = useState(false);
   const [nomeReceita, setNomeReceita] = useState('');
   const [unidadeFinal, setUnidadeFinal] = useState('');
   const [modoPreparo, setModoPreparo] = useState('');
@@ -45,6 +46,7 @@ const Receitas = () => {
     unidade: ''
   });
   const [receitas, setReceitas] = useState<Receita[]>([]);
+  const [receitaEditando, setReceitaEditando] = useState<Receita | null>(null);
 
   // URL fixa do webhook - substitua pela sua URL do Zapier
   const webhookUrl = 'https://hooks.zapier.com/hooks/catch/19729411/28t79ma/';
@@ -90,6 +92,28 @@ const Receitas = () => {
     }
   };
 
+  // Função para calcular o custo total da receita
+  const calcularCustoTotal = (ingredientes: IngredienteReceita[]): number => {
+    let custoTotal = 0;
+    
+    ingredientes.forEach(ingredienteReceita => {
+      const ingredienteCadastrado = ingredientesCadastrados.find(
+        ing => ing.nome === ingredienteReceita.nome
+      );
+      
+      if (ingredienteCadastrado) {
+        // Verifica se as unidades são compatíveis e calcula o custo
+        if (ingredienteCadastrado.unidade === ingredienteReceita.unidade) {
+          custoTotal += ingredienteCadastrado.valorCusto * ingredienteReceita.quantidade;
+        } else {
+          console.warn(`Unidades incompatíveis para ${ingredienteReceita.nome}: ${ingredienteCadastrado.unidade} vs ${ingredienteReceita.unidade}`);
+        }
+      }
+    });
+    
+    return custoTotal;
+  };
+
   const adicionarIngrediente = () => {
     if (!novoIngrediente.nome || !novoIngrediente.quantidade || !novoIngrediente.unidade) {
       toast.error('Preencha todos os campos do ingrediente');
@@ -117,35 +141,84 @@ const Receitas = () => {
       return;
     }
     
+    // Calcular o custo total antes de criar a receita
+    const custoCalculado = calcularCustoTotal(ingredientesReceita);
+    
     const novaReceita: Receita = {
       id: receitas.length + 1,
       nome: nomeReceita,
       ingredientes: ingredientesReceita,
       unidadeFinal: unidadeFinal,
       modoPreparo: modoPreparo,
-      custoTotal: 0 // Será calculado baseado nos ingredientes
+      custoTotal: custoCalculado
     };
+
+    // Trigger webhook ANTES de limpar o formulário
+    await triggerWebhook(novaReceita, 'receita_criada');
 
     setReceitas(prev => [...prev, novaReceita]);
     
     toast.success('Receita salva com sucesso!');
     
-    // Limpar formulário e fechar
+    // Limpar formulário e fechar APÓS enviar webhook
     setMostrarFormulario(false);
     setNomeReceita('');
     setUnidadeFinal('');
     setModoPreparo('');
     setIngredientesReceita([]);
-
-    // Trigger webhook APÓS salvar a receita com todos os dados
-    await triggerWebhook(novaReceita, 'receita_criada');
   };
 
-  const handleEditarReceita = async (receita: Receita) => {
-    // Trigger webhook APÓS editar receita com todos os dados
-    await triggerWebhook(receita, 'receita_editada');
+  const handleEditarReceita = (receita: Receita) => {
+    setReceitaEditando(receita);
+    setNomeReceita(receita.nome);
+    setUnidadeFinal(receita.unidadeFinal);
+    setModoPreparo(receita.modoPreparo);
+    setIngredientesReceita(receita.ingredientes);
+    setMostrarEdicao(true);
+  };
+
+  const handleSalvarEdicao = async () => {
+    if (!receitaEditando || !nomeReceita || !unidadeFinal || !modoPreparo || ingredientesReceita.length === 0) {
+      toast.error('Preencha todos os campos obrigatórios e adicione pelo menos um ingrediente');
+      return;
+    }
+
+    // Calcular o custo total atualizado
+    const custoCalculado = calcularCustoTotal(ingredientesReceita);
+
+    const receitaAtualizada: Receita = {
+      ...receitaEditando,
+      nome: nomeReceita,
+      ingredientes: ingredientesReceita,
+      unidadeFinal: unidadeFinal,
+      modoPreparo: modoPreparo,
+      custoTotal: custoCalculado
+    };
+
+    // Trigger webhook ANTES de atualizar a lista
+    await triggerWebhook(receitaAtualizada, 'receita_editada');
+
+    // Atualizar a receita na lista
+    setReceitas(prev => prev.map(r => r.id === receitaEditando.id ? receitaAtualizada : r));
     
-    toast.success('Funcionalidade de edição será implementada em breve!');
+    toast.success('Receita atualizada com sucesso!');
+    
+    // Limpar formulário e fechar modal de edição
+    setMostrarEdicao(false);
+    setReceitaEditando(null);
+    setNomeReceita('');
+    setUnidadeFinal('');
+    setModoPreparo('');
+    setIngredientesReceita([]);
+  };
+
+  const cancelarEdicao = () => {
+    setMostrarEdicao(false);
+    setReceitaEditando(null);
+    setNomeReceita('');
+    setUnidadeFinal('');
+    setModoPreparo('');
+    setIngredientesReceita([]);
   };
 
   const receitasFiltradas = receitas.filter(receita =>
@@ -220,7 +293,6 @@ const Receitas = () => {
               </div>
             </div>
 
-            {/* Modo de Preparo */}
             <div className="space-y-2">
               <Label htmlFor="modoPreparo">Modo de Preparo *</Label>
               <Textarea
@@ -232,11 +304,9 @@ const Receitas = () => {
               />
             </div>
 
-            {/* Adicionar Ingredientes */}
             <div className="space-y-4">
               <Label>Ingredientes Utilizados *</Label>
               
-              {/* Formulário para adicionar ingrediente */}
               <div className="border rounded-lg p-4 bg-gray-50">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
@@ -295,7 +365,6 @@ const Receitas = () => {
                 </div>
               </div>
 
-              {/* Lista de ingredientes adicionados */}
               {ingredientesReceita.length > 0 && (
                 <div className="space-y-2">
                   <Label>Ingredientes da Receita:</Label>
@@ -327,6 +396,152 @@ const Receitas = () => {
               <Button 
                 variant="outline" 
                 onClick={() => setMostrarFormulario(false)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Formulário de edição de receita */}
+      {mostrarEdicao && (
+        <Card className="shadow-sm border-l-4 border-l-blue-600">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-blue-600">
+              Editar Receita: {receitaEditando?.nome}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="nomeEdicao">Nome da Receita *</Label>
+                <Input
+                  id="nomeEdicao"
+                  value={nomeReceita}
+                  onChange={(e) => setNomeReceita(e.target.value)}
+                  placeholder="Ex: Hambúrguer Especial"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="unidadeEdicao">Unidade Final *</Label>
+                <Select value={unidadeFinal} onValueChange={setUnidadeFinal}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a unidade" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    <SelectItem value="unidade">Unidade</SelectItem>
+                    <SelectItem value="porção">Porção</SelectItem>
+                    <SelectItem value="kg">Quilograma</SelectItem>
+                    <SelectItem value="litro">Litro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="modoPreparoEdicao">Modo de Preparo *</Label>
+              <Textarea
+                id="modoPreparoEdicao"
+                value={modoPreparo}
+                onChange={(e) => setModoPreparo(e.target.value)}
+                placeholder="Descreva o modo de preparo da receita..."
+                rows={4}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <Label>Ingredientes Utilizados *</Label>
+              
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <Label>Nome do Ingrediente</Label>
+                    <Select 
+                      value={novoIngrediente.nome} 
+                      onValueChange={(value) => setNovoIngrediente(prev => ({ ...prev, nome: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white z-50">
+                        {ingredientesCadastrados.map((ingrediente) => (
+                          <SelectItem key={ingrediente.id} value={ingrediente.nome}>
+                            {ingrediente.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label>Quantidade</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={novoIngrediente.quantidade}
+                      onChange={(e) => setNovoIngrediente(prev => ({ ...prev, quantidade: e.target.value }))}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Unidade</Label>
+                    <Select 
+                      value={novoIngrediente.unidade} 
+                      onValueChange={(value) => setNovoIngrediente(prev => ({ ...prev, unidade: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white z-50">
+                        {unidades.map((unidade) => (
+                          <SelectItem key={unidade} value={unidade}>{unidade}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-end">
+                    <Button type="button" onClick={adicionarIngrediente} size="sm">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {ingredientesReceita.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Ingredientes da Receita:</Label>
+                  <div className="space-y-2">
+                    {ingredientesReceita.map((ingrediente, index) => (
+                      <div key={index} className="flex items-center justify-between bg-white p-3 rounded border">
+                        <span>
+                          {ingrediente.nome} - {ingrediente.quantidade} {ingrediente.unidade}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removerIngrediente(index)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <Button onClick={handleSalvarEdicao} className="bg-blue-600 hover:bg-blue-700">
+                Salvar Alterações
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={cancelarEdicao}
               >
                 Cancelar
               </Button>
