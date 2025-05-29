@@ -24,6 +24,15 @@ interface Receita {
   modoPreparo: string;
 }
 
+// Interface para ingredientes cadastrados (mesma estrutura da página Ingredientes)
+interface IngredienteCadastrado {
+  id: number;
+  nome: string;
+  unidade: string;
+  valorCusto: number;
+  categoria: string;
+}
+
 const Receitas = () => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [nomeReceita, setNomeReceita] = useState('');
@@ -37,13 +46,20 @@ const Receitas = () => {
     unidade: ''
   });
 
-  // Array vazio para receitas
   const [receitas, setReceitas] = useState<Receita[]>([]);
 
-  const ingredientesDisponiveis = [
-    'Carne Bovina', 'Queijo Mussarela', 'Tomate', 'Alface', 
-    'Pão de Hambúrguer', 'Batata Inglesa', 'Frango', 'Bacon'
-  ];
+  // Simulando ingredientes cadastrados - em um cenário real, isso viria de um contexto ou API
+  const [ingredientesCadastrados] = useState<IngredienteCadastrado[]>([
+    { id: 1, nome: 'Tomate', unidade: 'kg', valorCusto: 63, categoria: 'Hortifruti' },
+    { id: 2, nome: 'Jiló', unidade: 'kg', valorCusto: 43, categoria: 'Hortifruti' },
+    { id: 3, nome: 'Carne Bovina', unidade: 'kg', valorCusto: 35, categoria: 'Carnes' },
+    { id: 4, nome: 'Queijo Mussarela', unidade: 'kg', valorCusto: 25, categoria: 'Laticínios' },
+    { id: 5, nome: 'Alface', unidade: 'kg', valorCusto: 8, categoria: 'Hortifruti' },
+    { id: 6, nome: 'Pão de Hambúrguer', unidade: 'unidade', valorCusto: 0.5, categoria: 'Padaria' },
+    { id: 7, nome: 'Batata Inglesa', unidade: 'kg', valorCusto: 4, categoria: 'Hortifruti' },
+    { id: 8, nome: 'Frango', unidade: 'kg', valorCusto: 12, categoria: 'Aves' },
+    { id: 9, nome: 'Bacon', unidade: 'kg', valorCusto: 18, categoria: 'Suínos' }
+  ]);
 
   const unidades = ['kg', 'litro', 'unidade'];
 
@@ -85,6 +101,8 @@ const Receitas = () => {
 
     setReceitas(prev => [...prev, novaReceita]);
     toast.success('Receita salva com sucesso!');
+    
+    // Limpar formulário e fechar
     setMostrarFormulario(false);
     setNomeReceita('');
     setUnidadeFinal('');
@@ -193,8 +211,10 @@ const Receitas = () => {
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent className="bg-white z-50">
-                        {ingredientesDisponiveis.map((ing) => (
-                          <SelectItem key={ing} value={ing}>{ing}</SelectItem>
+                        {ingredientesCadastrados.map((ingrediente) => (
+                          <SelectItem key={ingrediente.id} value={ingrediente.nome}>
+                            {ingrediente.nome}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
