@@ -44,8 +44,10 @@ const Receitas = () => {
     quantidade: '',
     unidade: ''
   });
-  const [webhookUrl, setWebhookUrl] = useState('');
   const [receitas, setReceitas] = useState<Receita[]>([]);
+
+  // URL fixa do webhook - substitua pela sua URL do Zapier
+  const webhookUrl = 'https://hooks.zapier.com/hooks/catch/19729411/28t79ma/';
 
   // Simulando ingredientes cadastrados - em um cenário real, isso viria de um contexto ou API
   const [ingredientesCadastrados] = useState<IngredienteCadastrado[]>([
@@ -126,9 +128,6 @@ const Receitas = () => {
 
     setReceitas(prev => [...prev, novaReceita]);
     
-    // Trigger webhook para nova receita
-    await triggerWebhook(novaReceita, 'receita_criada');
-    
     toast.success('Receita salva com sucesso!');
     
     // Limpar formulário e fechar
@@ -137,10 +136,13 @@ const Receitas = () => {
     setUnidadeFinal('');
     setModoPreparo('');
     setIngredientesReceita([]);
+
+    // Trigger webhook APÓS salvar a receita com todos os dados
+    await triggerWebhook(novaReceita, 'receita_criada');
   };
 
   const handleEditarReceita = async (receita: Receita) => {
-    // Trigger webhook para edição de receita
+    // Trigger webhook APÓS editar receita com todos os dados
     await triggerWebhook(receita, 'receita_editada');
     
     toast.success('Funcionalidade de edição será implementada em breve!');
@@ -159,40 +161,26 @@ const Receitas = () => {
         </div>
       </div>
 
-      {/* Campo de pesquisa com botão Nova Receita e Webhook */}
+      {/* Campo de pesquisa com botão Nova Receita */}
       <Card className="shadow-sm">
         <CardContent className="pt-6">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Pesquisar receitas por nome..."
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button 
-                onClick={() => setMostrarFormulario(!mostrarFormulario)}
-                className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 text-base"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Nova Receita
-              </Button>
-            </div>
-            
-            {/* Campo para Webhook URL */}
-            <div className="space-y-2">
-              <Label htmlFor="webhook">URL do Webhook (Zapier)</Label>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                id="webhook"
-                value={webhookUrl}
-                onChange={(e) => setWebhookUrl(e.target.value)}
-                placeholder="https://hooks.zapier.com/hooks/catch/..."
-                className="w-full"
+                placeholder="Pesquisar receitas por nome..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="pl-10"
               />
             </div>
+            <Button 
+              onClick={() => setMostrarFormulario(!mostrarFormulario)}
+              className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 text-base"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Nova Receita
+            </Button>
           </div>
         </CardContent>
       </Card>
