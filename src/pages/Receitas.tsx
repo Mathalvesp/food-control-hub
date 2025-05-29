@@ -37,33 +37,8 @@ const Receitas = () => {
     unidade: ''
   });
 
-  // Dados simulados
-  const [receitas, setReceitas] = useState<Receita[]>([
-    {
-      id: 1,
-      nome: 'Hambúrguer Clássico',
-      ingredientes: [
-        { nome: 'Carne Bovina', quantidade: 0.15, unidade: 'kg' },
-        { nome: 'Pão de Hambúrguer', quantidade: 1, unidade: 'unidade' },
-        { nome: 'Queijo Mussarela', quantidade: 0.03, unidade: 'kg' },
-        { nome: 'Alface', quantidade: 0.02, unidade: 'kg' },
-        { nome: 'Tomate', quantidade: 0.02, unidade: 'kg' },
-      ],
-      unidadeFinal: 'unidade',
-      custoTotal: 6.45,
-      modoPreparo: 'Grelhe a carne por 4 minutos de cada lado. Torre o pão levemente. Monte o hambúrguer com alface, tomate, carne e queijo.'
-    },
-    {
-      id: 2,
-      nome: 'Batata Frita Especial',
-      ingredientes: [
-        { nome: 'Batata Inglesa', quantidade: 0.2, unidade: 'kg' },
-      ],
-      unidadeFinal: 'porção',
-      custoTotal: 0.67,
-      modoPreparo: 'Corte as batatas em fatias. Frite em óleo a 180°C por 3-4 minutos até dourar. Tempere com sal.'
-    }
-  ]);
+  // Array vazio para receitas
+  const [receitas, setReceitas] = useState<Receita[]>([]);
 
   const ingredientesDisponiveis = [
     'Carne Bovina', 'Queijo Mussarela', 'Tomate', 'Alface', 
@@ -105,7 +80,7 @@ const Receitas = () => {
       ingredientes: ingredientesReceita,
       unidadeFinal: unidadeFinal,
       modoPreparo: modoPreparo,
-      custoTotal: Math.random() * 10 + 2 // Simulação de cálculo de custo
+      custoTotal: 0 // Será calculado baseado nos ingredientes
     };
 
     setReceitas(prev => [...prev, novaReceita]);

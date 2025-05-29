@@ -4,31 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const Dashboard = () => {
-  // Dados simulados para os cards
+  // Dados vazios para os cards
   const statsData = [
-    { title: 'CMV Global', value: '23.5%', description: 'Custo das Mercadorias Vendidas', color: 'text-green-600' },
-    { title: 'CMV Diário', value: '24.2%', description: 'CMV das operações de hoje', color: 'text-blue-600' },
-    { title: 'Itens em Estoque', value: '247', description: 'Produtos cadastrados', color: 'text-purple-600' },
-    { title: 'Receitas Cadastradas', value: '89', description: 'Receitas no sistema', color: 'text-orange-600' },
+    { title: 'CMV Global', value: '0%', description: 'Custo das Mercadorias Vendidas', color: 'text-green-600' },
+    { title: 'CMV Diário', value: '0%', description: 'CMV das operações de hoje', color: 'text-blue-600' },
+    { title: 'Itens em Estoque', value: '0', description: 'Produtos cadastrados', color: 'text-purple-600' },
+    { title: 'Receitas Cadastradas', value: '0', description: 'Receitas no sistema', color: 'text-orange-600' },
   ];
 
-  // Dados para o gráfico de barras
-  const barData = [
-    { mes: 'Jan', cmv: 22.1 },
-    { mes: 'Fev', cmv: 24.3 },
-    { mes: 'Mar', cmv: 21.8 },
-    { mes: 'Abr', cmv: 23.5 },
-    { mes: 'Mai', cmv: 22.9 },
-    { mes: 'Jun', cmv: 23.5 },
-  ];
+  // Dados vazios para o gráfico de barras
+  const barData = [];
 
-  // Dados para o gráfico de pizza
-  const pieData = [
-    { name: 'Proteínas', value: 35, color: '#D72638' },
-    { name: 'Vegetais', value: 28, color: '#FF6B6B' },
-    { name: 'Grãos', value: 20, color: '#FFE66D' },
-    { name: 'Laticínios', value: 17, color: '#4ECDC4' },
-  ];
+  // Dados vazios para o gráfico de pizza
+  const pieData = [];
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -75,6 +63,11 @@ const Dashboard = () => {
                 <Bar dataKey="cmv" fill="#D72638" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            {barData.length === 0 && (
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                Nenhum dado disponível
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -103,6 +96,11 @@ const Dashboard = () => {
                 <Tooltip formatter={(value) => [`${value}%`, 'Participação']} />
               </PieChart>
             </ResponsiveContainer>
+            {pieData.length === 0 && (
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                Nenhum dado disponível
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -115,28 +113,8 @@ const Dashboard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Nova receita cadastrada</p>
-                <p className="text-sm text-gray-600">Hambúrguer Especial da Casa</p>
-              </div>
-              <span className="text-sm text-gray-500">2 horas atrás</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Entrada de estoque</p>
-                <p className="text-sm text-gray-600">Carne bovina - 50kg</p>
-              </div>
-              <span className="text-sm text-gray-500">5 horas atrás</span>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Atualização de preço</p>
-                <p className="text-sm text-gray-600">Queijo mussarela</p>
-              </div>
-              <span className="text-sm text-gray-500">1 dia atrás</span>
-            </div>
+          <div className="text-center py-8 text-gray-500">
+            <p>Nenhuma atividade recente</p>
           </div>
         </CardContent>
       </Card>

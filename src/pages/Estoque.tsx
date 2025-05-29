@@ -24,63 +24,8 @@ const Estoque = () => {
   const [quantidadeEntrada, setQuantidadeEntrada] = useState('');
   const [unidadeProduto, setUnidadeProduto] = useState('');
 
-  // Dados simulados
-  const [produtos] = useState<ProdutoEstoque[]>([
-    {
-      id: 1,
-      nome: 'Carne Bovina',
-      quantidade: 45.5,
-      unidade: 'kg',
-      ultimaEntrada: '2024-05-25',
-      estoqueMinimo: 10,
-      status: 'ok'
-    },
-    {
-      id: 2,
-      nome: 'Queijo Mussarela',
-      quantidade: 8.2,
-      unidade: 'kg',
-      ultimaEntrada: '2024-05-24',
-      estoqueMinimo: 5,
-      status: 'baixo'
-    },
-    {
-      id: 3,
-      nome: 'Tomate',
-      quantidade: 2.1,
-      unidade: 'kg',
-      ultimaEntrada: '2024-05-23',
-      estoqueMinimo: 3,
-      status: 'critico'
-    },
-    {
-      id: 4,
-      nome: 'Alface',
-      quantidade: 25,
-      unidade: 'unidades',
-      ultimaEntrada: '2024-05-26',
-      estoqueMinimo: 10,
-      status: 'ok'
-    },
-    {
-      id: 5,
-      nome: 'Pão de Hambúrguer',
-      quantidade: 120,
-      unidade: 'unidades',
-      ultimaEntrada: '2024-05-26',
-      estoqueMinimo: 50,
-      status: 'ok'
-    },
-    {
-      id: 6,
-      nome: 'Batata Inglesa',
-      quantidade: 15.8,
-      unidade: 'kg',
-      ultimaEntrada: '2024-05-25',
-      estoqueMinimo: 5,
-      status: 'ok'
-    }
-  ]);
+  // Array vazio para produtos
+  const [produtos] = useState<ProdutoEstoque[]>([]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -261,6 +206,20 @@ const Estoque = () => {
           </Card>
         ))}
       </div>
+
+      {produtos.length === 0 && (
+        <Card className="shadow-sm">
+          <CardContent className="text-center py-12">
+            <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Nenhum produto em estoque
+            </h3>
+            <p className="text-gray-600">
+              Comece registrando sua primeira entrada de produto
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

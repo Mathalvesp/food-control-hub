@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -46,39 +47,8 @@ const Ingredientes = () => {
     };
   };
 
-  // Dados simulados com cálculos automáticos
-  const [ingredientes, setIngredientes] = useState<Ingrediente[]>([
-    { 
-      id: 1, 
-      nome: 'Carne Bovina', 
-      unidade: 'kg', 
-      valorCusto: 32.50, 
-      pesoInicial: 1.0,
-      pesoFinal: 0.85,
-      ...calcularValores(1.0, 0.85, 32.50),
-      categoria: 'Carnes' 
-    },
-    { 
-      id: 2, 
-      nome: 'Queijo Mussarela', 
-      unidade: 'kg', 
-      valorCusto: 28.90, 
-      pesoInicial: 1.0,
-      pesoFinal: 0.95,
-      ...calcularValores(1.0, 0.95, 28.90),
-      categoria: 'Laticínios' 
-    },
-    { 
-      id: 3, 
-      nome: 'Tomate', 
-      unidade: 'kg', 
-      valorCusto: 4.50, 
-      pesoInicial: 1.0,
-      pesoFinal: 0.90,
-      ...calcularValores(1.0, 0.90, 4.50),
-      categoria: 'Hortifruti' 
-    },
-  ]);
+  // Array vazio para ingredientes
+  const [ingredientes, setIngredientes] = useState<Ingrediente[]>([]);
 
   const categorias = [
     { value: 'todas', label: 'Todas as Categorias' },
