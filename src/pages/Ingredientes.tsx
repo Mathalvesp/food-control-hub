@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ const Ingredientes = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedIngrediente, setSelectedIngrediente] = useState<Ingrediente | null>(null);
+  const [proximoId, setProximoId] = useState(1); // Controla o próximo ID a ser usado
 
   // Função para calcular valores automáticos
   const calcularValores = (pesoInicial: number, pesoFinal: number, valorCusto: number) => {
@@ -77,8 +79,16 @@ const Ingredientes = () => {
     return colors[categoria as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleAdicionarIngrediente = (novoIngrediente: Ingrediente) => {
+  const handleAdicionarIngrediente = (novoIngredienteData: Omit<Ingrediente, 'id'>) => {
+    // Criar o ingrediente com o ID sequencial
+    const novoIngrediente: Ingrediente = {
+      ...novoIngredienteData,
+      id: proximoId
+    };
+    
+    console.log(`Adicionando ingrediente com ID sequencial: ${proximoId}`);
     setIngredientes(prev => [...prev, novoIngrediente]);
+    setProximoId(prev => prev + 1); // Incrementa o próximo ID
   };
 
   const handleEditarIngrediente = (ingrediente: Ingrediente) => {
@@ -203,13 +213,14 @@ const Ingredientes = () => {
           <CardTitle className="text-lg font-semibold">
             Ingredientes Cadastrados ({ingredientesFiltrados.length})
           </CardTitle>
-          <NovoIngredienteModal onIngredienteAdicionado={handleAdicionarIngrediente} />
+          <NovoIngredienteModal onIngredienteAdicionado={handleAdicionarIngrediente} proximoId={proximoId} />
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">ID</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Ingrediente</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Categoria</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Unidade</th>
@@ -224,6 +235,9 @@ const Ingredientes = () => {
               <tbody>
                 {ingredientesFiltrados.map((ingrediente) => (
                   <tr key={ingrediente.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="py-4 px-4">
+                      <div className="font-medium text-blue-600">#{ingrediente.id}</div>
+                    </td>
                     <td className="py-4 px-4">
                       <div className="font-medium text-gray-900">{ingrediente.nome}</div>
                     </td>

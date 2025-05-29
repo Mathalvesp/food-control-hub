@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -31,10 +32,11 @@ interface Ingrediente {
 }
 
 interface NovoIngredienteModalProps {
-  onIngredienteAdicionado?: (ingrediente: Ingrediente) => void;
+  onIngredienteAdicionado?: (ingrediente: Omit<Ingrediente, 'id'>) => void;
+  proximoId: number;
 }
 
-const NovoIngredienteModal = ({ onIngredienteAdicionado }: NovoIngredienteModalProps) => {
+const NovoIngredienteModal = ({ onIngredienteAdicionado, proximoId }: NovoIngredienteModalProps) => {
   const [open, setOpen] = useState(false);
   const [ingredienteData, setIngredienteData] = useState<NovoIngredienteData>({
     nome: '',
@@ -105,6 +107,7 @@ const NovoIngredienteModal = ({ onIngredienteAdicionado }: NovoIngredienteModalP
 
     console.log('=== INICIANDO CHAMADA DO WEBHOOK COM DADOS ===');
     console.log('URL:', 'https://n8n-producao.24por7.ai/webhook-test/ingredientes');
+    console.log('ID que será usado:', proximoId);
     
     toast.info('Processando novo ingrediente...');
     
@@ -113,6 +116,7 @@ const NovoIngredienteModal = ({ onIngredienteAdicionado }: NovoIngredienteModalP
       timestamp: new Date().toISOString(),
       triggered_from: window.location.origin,
       user_agent: navigator.userAgent,
+      id: proximoId.toString(), // Usar o ID sequencial
       nome: ingredienteData.nome,
       categoria: ingredienteData.categoria,
       unidade: ingredienteData.unidade,
@@ -122,7 +126,7 @@ const NovoIngredienteModal = ({ onIngredienteAdicionado }: NovoIngredienteModalP
       fator_correcao: fatorCorrecao,
     });
     
-    console.log('Dados do ingrediente:', { ...ingredienteData, fator_correcao: fatorCorrecao });
+    console.log('Dados do ingrediente:', { ...ingredienteData, id: proximoId, fator_correcao: fatorCorrecao });
     console.log('Parâmetros sendo enviados:', params.toString());
     
     try {
@@ -138,12 +142,11 @@ const NovoIngredienteModal = ({ onIngredienteAdicionado }: NovoIngredienteModalP
       if (response.ok) {
         const responseData = await response.text();
         console.log('Response data:', responseData);
-        toast.success(`Ingrediente "${ingredienteData.nome}" criado com sucesso!`);
+        toast.success(`Ingrediente "${ingredienteData.nome}" criado com sucesso! ID: ${proximoId}`);
         
         // Criar o objeto ingrediente para adicionar à lista local
         const valoresCalculados = calcularValores(pesoInicial, pesoFinal, valorCusto);
-        const novoIngrediente: Ingrediente = {
-          id: Date.now(), // ID temporário baseado no timestamp
+        const novoIngrediente: Omit<Ingrediente, 'id'> = {
           nome: ingredienteData.nome,
           categoria: ingredienteData.categoria,
           unidade: ingredienteData.unidade,
@@ -202,7 +205,7 @@ const NovoIngredienteModal = ({ onIngredienteAdicionado }: NovoIngredienteModalP
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Adicionar Novo Ingrediente</DialogTitle>
+          <DialogTitle>Adicionar Novo Ingrediente (ID: #{proximoId})</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
