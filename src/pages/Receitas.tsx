@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, BookOpen, X, Search } from 'lucide-react';
+import { Plus, BookOpen, X, Search, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface IngredienteReceita {
@@ -45,7 +44,7 @@ const Receitas = () => {
     quantidade: '',
     unidade: ''
   });
-
+  const [webhookUrl, setWebhookUrl] = useState('');
   const [receitas, setReceitas] = useState<Receita[]>([]);
 
   // Simulando ingredientes cadastrados - em um cenário real, isso viria de um contexto ou API
@@ -62,6 +61,32 @@ const Receitas = () => {
   ]);
 
   const unidades = ['kg', 'litro', 'unidade'];
+
+  const triggerWebhook = async (data: any, action: string) => {
+    if (!webhookUrl) {
+      console.log('Webhook URL não configurada');
+      return;
+    }
+
+    try {
+      console.log(`Triggering webhook for ${action}:`, data);
+      await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: "no-cors",
+        body: JSON.stringify({
+          action,
+          data,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+      console.log(`Webhook ${action} enviado com sucesso`);
+    } catch (error) {
+      console.error(`Erro ao enviar webhook ${action}:`, error);
+    }
+  };
 
   const adicionarIngrediente = () => {
     if (!novoIngrediente.nome || !novoIngrediente.quantidade || !novoIngrediente.unidade) {
@@ -84,7 +109,7 @@ const Receitas = () => {
     setIngredientesReceita(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSalvarReceita = () => {
+  const handleSalvarReceita = async () => {
     if (!nomeReceita || !unidadeFinal || !modoPreparo || ingredientesReceita.length === 0) {
       toast.error('Preencha todos os campos obrigatórios e adicione pelo menos um ingrediente');
       return;
@@ -100,6 +125,10 @@ const Receitas = () => {
     };
 
     setReceitas(prev => [...prev, novaReceita]);
+    
+    // Trigger webhook para nova receita
+    await triggerWebhook(novaReceita, 'receita_criada');
+    
     toast.success('Receita salva com sucesso!');
     
     // Limpar formulário e fechar
@@ -108,6 +137,13 @@ const Receitas = () => {
     setUnidadeFinal('');
     setModoPreparo('');
     setIngredientesReceita([]);
+  };
+
+  const handleEditarReceita = async (receita: Receita) => {
+    // Trigger webhook para edição de receita
+    await triggerWebhook(receita, 'receita_editada');
+    
+    toast.success('Funcionalidade de edição será implementada em breve!');
   };
 
   const receitasFiltradas = receitas.filter(receita =>
@@ -123,26 +159,40 @@ const Receitas = () => {
         </div>
       </div>
 
-      {/* Campo de pesquisa com botão Nova Receita */}
+      {/* Campo de pesquisa com botão Nova Receita e Webhook */}
       <Card className="shadow-sm">
         <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Pesquisar receitas por nome..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button 
+                onClick={() => setMostrarFormulario(!mostrarFormulario)}
+                className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 text-base"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Nova Receita
+              </Button>
+            </div>
+            
+            {/* Campo para Webhook URL */}
+            <div className="space-y-2">
+              <Label htmlFor="webhook">URL do Webhook (Zapier)</Label>
               <Input
-                placeholder="Pesquisar receitas por nome..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="pl-10"
+                id="webhook"
+                value={webhookUrl}
+                onChange={(e) => setWebhookUrl(e.target.value)}
+                placeholder="https://hooks.zapier.com/hooks/catch/..."
+                className="w-full"
               />
             </div>
-            <Button 
-              onClick={() => setMostrarFormulario(!mostrarFormulario)}
-              className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 text-base"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Nova Receita
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -337,7 +387,13 @@ const Receitas = () => {
                 </div>
 
                 <div className="pt-2 border-t">
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleEditarReceita(receita)}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
                     Editar Receita
                   </Button>
                 </div>
