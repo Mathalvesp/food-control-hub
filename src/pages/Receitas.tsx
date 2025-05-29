@@ -48,8 +48,8 @@ const Receitas = () => {
   const [receitas, setReceitas] = useState<Receita[]>([]);
   const [receitaEditando, setReceitaEditando] = useState<Receita | null>(null);
 
-  // URL fixa do webhook - substitua pela sua URL do Zapier
-  const webhookUrl = 'https://hooks.zapier.com/hooks/catch/19729411/28t79ma/';
+  // URL atualizada do webhook
+  const webhookUrl = 'https://n8n-producao.24por7.ai/webhook-test/ingredientes';
 
   // Simulando ingredientes cadastrados - em um cenário real, isso viria de um contexto ou API
   const [ingredientesCadastrados] = useState<IngredienteCadastrado[]>([
